@@ -7,9 +7,9 @@ This project is a microservices-based expense management system built using Dock
 The architecture is designed to be scalable, modular, and loosely coupled, with each service handling a specific responsibility.
 
 
-## Watch Demo
+## Watch Demo Video
 
-[Watch Demo Video](ExpenseTrackerResources/demo.mp4)
+[![Watch demo video](ExpenseTrackerResources/home.png)](https://raw.githubusercontent.com/Sarthaksource/expense-tracker-microservices/main/ExpenseTrackerResources/demo.mp4)
 
 
 ## High-Level Architecture (HLD)
