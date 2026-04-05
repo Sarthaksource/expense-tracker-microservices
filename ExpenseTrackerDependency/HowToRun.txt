@@ -1,0 +1,17 @@
+cd to this folder
+
+(cd to jars folder) Move jars to docker using the Dockerfile in jars folder
+Build the images of auth and user service
+Use services file to create container:
+Create: docker-compose -f services.yml up --build -d
+Remove: docker-compose -f services.yml down -v
+
+
+NO NEED TO DO THIS, ALREADY IN SERVICES.YML
+Use kong-compose file to create kong container:
+Create: docker-compose -f kong-compose.yml up -d
+Remove: docker-compose -f kong-compose.yml down
+
+
+
+Then u can check logs of different containers and use postman to send requests
