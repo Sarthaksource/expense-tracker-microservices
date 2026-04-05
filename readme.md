@@ -9,7 +9,7 @@ The architecture is designed to be scalable, modular, and loosely coupled, with 
 
 ## Watch Demo Video
 
-[![Watch demo video](ExpenseTrackerResources/home.png)](https://raw.githubusercontent.com/Sarthaksource/expense-tracker-microservices/main/ExpenseTrackerResources/demo.mp4)
+[Download demo video](https://raw.githubusercontent.com/Sarthaksource/expense-tracker-microservices/main/ExpenseTrackerResources/demo.mp4)
 
 
 ## High-Level Architecture (HLD)
