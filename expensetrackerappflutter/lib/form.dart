@@ -1,113 +1,62 @@
-import 'package:expensetrackerappflutter/models/field_config.dart';
 import 'package:flutter/material.dart';
+import 'package:expensetrackerappflutter/services/permission_service.dart';
 
-class DynamicForm extends StatefulWidget {
-  final Map<String, FieldConfig> fields;
+class ProfileForm extends StatefulWidget {
+  final List<String> currencyOptions;
+  final bool initialReadPermission;
   final void Function(Map<String, dynamic>) onSubmit;
+  final String? initialAmount;
+  final String? initialCurrencyCode;
 
-  const DynamicForm({super.key, required this.fields, required this.onSubmit});
+  const ProfileForm({
+    super.key,
+    required this.currencyOptions,
+    required this.initialReadPermission,
+    required this.onSubmit,
+    this.initialAmount,
+    this.initialCurrencyCode
+  });
 
   @override
-  State<DynamicForm> createState() => _DynamicFormState();
+  State<ProfileForm> createState() => _ProfileFormState();
 }
 
-class _DynamicFormState extends State<DynamicForm> {
+class _ProfileFormState extends State<ProfileForm> {
   final _formKey = GlobalKey<FormState>();
-  final Map<String, TextEditingController> _controllers = {};
-  final Map<String, String?> _dropdownValues = {};
+
+  final TextEditingController _amountController = TextEditingController();
+  String? _selectedCurrencyCode;
+  late bool _readMessagesPermission;
 
   @override
   void initState() {
     super.initState();
+    
+    _amountController.text = widget.initialAmount ?? "";
 
-    for (var entry in widget.fields.entries) {
-      if (entry.value.type == "dropdown") {
-        _dropdownValues[entry.key] = entry.value.options?.first;
-      } else {
-        _controllers[entry.key] = TextEditingController();
-      }
+    if (widget.initialCurrencyCode != null && widget.currencyOptions.contains(widget.initialCurrencyCode)) {
+      _selectedCurrencyCode = widget.initialCurrencyCode;
+    } else if (widget.currencyOptions.isNotEmpty) {
+      _selectedCurrencyCode = widget.currencyOptions.first;
     }
+    
+    _readMessagesPermission = widget.initialReadPermission; 
   }
 
   @override
   void dispose() {
-    for (final c in _controllers.values) {
-      c.dispose();
-    }
+    _amountController.dispose();
     super.dispose();
   }
 
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      final result = <String, dynamic>{};
-
-      for (var entry in widget.fields.entries) {
-        if (entry.value.type == "dropdown") {
-          result[entry.key] = _dropdownValues[entry.key];
-        } else {
-          result[entry.key] = _controllers[entry.key]!.text;
-        }
-      }
-
-      widget.onSubmit(result);
+      widget.onSubmit({
+        "amountLimit": _amountController.text,
+        "currencyCode": _selectedCurrencyCode,
+        "readMessagesPermission": _readMessagesPermission,
+      });
     }
-  }
-
-  Widget _buildField(String key, FieldConfig config) {
-    if (config.type == "dropdown") {
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          return DropdownMenu<String>(
-            initialSelection: _dropdownValues[key],
-            width: constraints.maxWidth,
-            label: Text(config.label),
-            onSelected: (val) => setState(() => _dropdownValues[key] = val),
-            dropdownMenuEntries: config.options!
-                .map(
-                  (e) => DropdownMenuEntry(
-                    value: e,
-                    label: e,
-                    style: ButtonStyle(
-                      minimumSize: WidgetStateProperty.all(
-                        Size(constraints.maxWidth, 48),
-                      ),
-                      maximumSize: WidgetStateProperty.all(
-                        Size(
-                          constraints.maxWidth,
-                          48,
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-            inputDecorationTheme: const InputDecorationTheme(
-              border: OutlineInputBorder(),
-            ),
-          );
-        },
-      );
-    }
-
-    return TextFormField(
-      controller: _controllers[key],
-      keyboardType: config.type == "number"
-          ? TextInputType.number
-          : TextInputType.text,
-      decoration: InputDecoration(
-        labelText: config.label,
-        border: const OutlineInputBorder(),
-      ),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'Required';
-
-        if (config.type == "number" && double.tryParse(v) == null) {
-          return 'Enter valid number';
-        }
-
-        return null;
-      },
-    );
   }
 
   @override
@@ -117,13 +66,125 @@ class _DynamicFormState extends State<DynamicForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ...widget.fields.entries.map((entry) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildField(entry.key, entry.value),
-            );
-          }),
+          // 1. Amount Limit Field
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: TextFormField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: "Amount Limit",
+                border: OutlineInputBorder(),
+              ),
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'Required';
+                if (double.tryParse(v) == null) return 'Enter valid number';
+                return null;
+              },
+            ),
+          ),
+
+          // 2. Currency Dropdown
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return DropdownMenu<String>(
+                  initialSelection: _selectedCurrencyCode,
+                  width: constraints.maxWidth,
+                  label: const Text("Currency"),
+                  onSelected: (val) => setState(() => _selectedCurrencyCode = val),
+                  dropdownMenuEntries: widget.currencyOptions
+                      .map(
+                        (e) => DropdownMenuEntry(
+                          value: e,
+                          label: e,
+                          style: ButtonStyle(
+                            minimumSize: WidgetStateProperty.all(
+                              Size(constraints.maxWidth, 48),
+                            ),
+                            maximumSize: WidgetStateProperty.all(
+                              Size(constraints.maxWidth, 48),
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  inputDecorationTheme: const InputDecorationTheme(
+                    border: OutlineInputBorder(),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // 3. Message Permission Toggle
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: InputDecorator(
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          "Read expenses from messages",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Transform.scale(
+                    scale: 0.9,
+                    alignment: Alignment.centerRight,
+                    child: Switch(
+                      value: _readMessagesPermission,
+                      activeThumbColor: Colors.purple.shade900,
+                      onChanged: (bool value) async {
+                        if (value) {
+                          bool permitted = await requestSmsPermission(); 
+                          if (!mounted) return;
+                          if (permitted) {
+                            setState(() {
+                              _readMessagesPermission = true;
+                            });
+                          } else {
+                            setState(() {
+                              _readMessagesPermission = false;
+                            });
+                            
+                            // if (mounted) {
+                            //   ScaffoldMessenger.of(context).showSnackBar(
+                            //     const SnackBar(
+                            //       content: Text("SMS permission is required to read expenses."),
+                            //     ),
+                            //   );
+                            // }
+                          }
+                        } else {
+                          setState(() {
+                            _readMessagesPermission = false;
+                          });
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           const SizedBox(height: 15),
+
+          // Submit Button
           TextButton(
             style: TextButton.styleFrom(
               backgroundColor: Colors.purple.shade900,

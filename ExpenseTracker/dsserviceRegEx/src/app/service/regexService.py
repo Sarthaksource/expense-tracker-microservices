@@ -7,7 +7,7 @@ class RegexService:
     def extract(self, message: str) -> Expense:
         amount = self._extract_amount(message)
         merchant = self._extract_merchant(message)
-        return Expense(amount=amount, merchant=merchant, currency="INR")  # currency hardcoded as dummy
+        return Expense(amount=amount, merchant=merchant)  # currency hardcoded as dummy
 
     # ─── AMOUNT ───────────────────────────────────────────────────
     def _extract_amount(self, sms: str):

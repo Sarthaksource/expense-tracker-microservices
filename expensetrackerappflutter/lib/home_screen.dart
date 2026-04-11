@@ -6,7 +6,6 @@ import 'package:expensetrackerappflutter/entities/expense.dart';
 import 'package:expensetrackerappflutter/form_dialog.dart';
 import 'package:expensetrackerappflutter/login_screen.dart';
 import 'package:expensetrackerappflutter/profile_screen.dart';
-import 'package:expensetrackerappflutter/services/permission_service.dart';
 import 'package:expensetrackerappflutter/services/sms_service.dart';
 import 'package:expensetrackerappflutter/widgets/expense_card.dart';
 import 'package:expensetrackerappflutter/widgets/expense_filter.dart';
@@ -27,7 +26,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final BASE_URL = AppConfig.baseUrl;
   final List<Expense> _expenses = [];
-  ExpenseFilter _activeFilter = const ExpenseFilter(type: ExpenseFilterType.all);
+  ExpenseFilter _activeFilter = const ExpenseFilter(
+    type: ExpenseFilterType.all,
+  );
   List<Expense> _filteredExpenses = [];
   final storage = FlutterSecureStorage();
   String _topMerchant = "None";
@@ -36,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _currency = "₹";
   final ScrollController _scrollController = ScrollController();
   bool _showFab = true;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -54,14 +56,18 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      init();
+      _refreshData();
     });
   }
 
-  void init() async {
+  void _refreshData() async {
+    setState(() => _isLoading = true);
+
     await getExpenses();
     await getExpenseInfo();
-    getSMS();
+    await getSMS();
+
+    setState(() => _isLoading = false);
   }
 
   void _applyFilter() {
@@ -96,15 +102,16 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: EdgeInsets.only(right: 10),
             child: GestureDetector(
-              onTap: () {
-                Navigator.push(
+             onTap: () async {
+                final didTurnOnSms = await Navigator.push<bool>(
                   context,
                   MaterialPageRoute(builder: (_) => ProfileScreen()),
-                ).then((_) async {
-                  setState(() {
-                    getExpenseInfo();
-                  });
-                });
+                );
+                if (didTurnOnSms==true) {
+                  _refreshData(); 
+                } else {
+                  getExpenseInfo(); 
+                }
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -179,10 +186,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget getRecentExpensesCard() {
+    if (_isLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              height: 25,
+              width: 25,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: Colors.purple.shade900,
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              "Syncing latest expenses...",
+              style: TextStyle(color: Colors.grey.shade700),
+            ),
+          ],
+        ),
+      );
+    }
     if (_filteredExpenses.isEmpty) {
       return Center(child: Text("No record found"));
     }
-
     return ListView(
       controller: _scrollController,
       children: _filteredExpenses.map((e) {
@@ -362,22 +390,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> getSMS() async {
-    final permitted = await requestSmsPermission();
-    if (!permitted) {
-      print("getSMS: Permission denied!!");
-      return;
-    }
-    try {
-      List<SmsMessage> messages = await readSMS();
-      await Future.wait(messages.map((msg) => setMessage(msg)));
-      await getExpenses();
-    } catch (e) {
-      print("getSMS error: $e");
+    String? permissionValue = await storage.read(key: "readMessagesPermission");
+    if (permissionValue == 'true') {
+      try {
+        List<SmsMessage> messages = await readSMS();
+        if (messages.isNotEmpty) {
+          await setMessagesBatch(messages);
+          await Future.delayed(Duration(seconds: 2));
+        }
+        await getExpenses();
+      } catch (e) {
+        print("getSMS error: $e");
+      }
     }
   }
 
-  Future<void> setMessage(var message) async {
+  Future<void> setMessagesBatch(List<SmsMessage> messages) async {
     String? accessToken = await storage.read(key: "accessToken");
+
+    List<Map<String, dynamic>> payload = messages.map((msg) {
+      return {
+        "message": msg.body,
+        "datetime": msg.date?.toUtc().toIso8601String(),
+      };
+    }).toList();
 
     final response = await http.post(
       Uri.parse("$BASE_URL/ds/v1/message"),
@@ -386,16 +422,13 @@ class _HomeScreenState extends State<HomeScreen> {
         'X-Requested-With': 'XMLHttpRequest',
         'Authorization': 'Bearer $accessToken',
       },
-      body: jsonEncode({
-        "message": message.body,
-        "datetime": message.date!.toUtc().toIso8601String(),
-      }),
+      body: jsonEncode(payload),
     );
+
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      print("setMessage: $data");
+      print("Batch sent successfully");
     } else {
-      print(response.statusCode);
+      print("Error sending batch: ${response.statusCode}");
     }
   }
 }
