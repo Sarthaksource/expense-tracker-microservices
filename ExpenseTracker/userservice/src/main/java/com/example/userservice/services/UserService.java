@@ -15,7 +15,6 @@ import java.util.function.UnaryOperator;
 @RequiredArgsConstructor
 public class UserService
 {
-    @Autowired
     private final UserRepository userRepository;
 
     public UserInfoDto createOrUpdateUser(UserInfoDto userInfoDto){
@@ -47,8 +46,8 @@ public class UserService
         );
     }
 
-    public UserInfoDto getUser(UserInfoDto userInfoDto) throws Exception{
-        Optional<UserInfo> userInfoDtoOpt = userRepository.findByUserId(userInfoDto.getUserId());
+    public UserInfoDto getUser(String userId) throws Exception{
+        Optional<UserInfo> userInfoDtoOpt = userRepository.findByUserId(userId);
         if(userInfoDtoOpt.isEmpty()){
             throw new Exception("User not found");
         }

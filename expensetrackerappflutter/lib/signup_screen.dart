@@ -19,7 +19,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String _email = "";
   String _username = "";
   String _password = "";
-  String _phoneNumber = "";
+  String _phoneNumber = "0";
   bool _isPasswordVisible = false;
 
   final storage = FlutterSecureStorage();

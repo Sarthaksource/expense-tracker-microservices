@@ -7,6 +7,7 @@ import 'package:expensetrackerappflutter/form_dialog.dart';
 import 'package:expensetrackerappflutter/login_screen.dart';
 import 'package:expensetrackerappflutter/profile_screen.dart';
 import 'package:expensetrackerappflutter/services/sms_service.dart';
+import 'package:expensetrackerappflutter/utils/pref_utils.dart';
 import 'package:expensetrackerappflutter/widgets/expense_card.dart';
 import 'package:expensetrackerappflutter/widgets/expense_filter.dart';
 import 'package:expensetrackerappflutter/widgets/recent_spends.dart';
@@ -15,6 +16,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -38,6 +40,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _showFab = true;
   bool _isLoading = true;
+
+  String? _profilePicUrl;
 
   @override
   void initState() {
@@ -63,8 +67,21 @@ class _HomeScreenState extends State<HomeScreen> {
   void _refreshData() async {
     setState(() => _isLoading = true);
 
+    final prefs = await SharedPreferences.getInstance();
+    final profilePicKey = await PrefUtils.getPrefKey("profilePic");
+    setState(() {
+      _profilePicUrl = prefs.getString(profilePicKey);
+    });
+
+    // await Future.wait([
+    //   getExpenses(),
+    //   getExpenseInfo(),
+    //   getSMS(),
+    // ]);
+
     await getExpenses();
     await getExpenseInfo();
+    await syncUserInfo();
     await getSMS();
 
     setState(() => _isLoading = false);
@@ -102,15 +119,20 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: EdgeInsets.only(right: 10),
             child: GestureDetector(
-             onTap: () async {
+              onTap: () async {
                 final didTurnOnSms = await Navigator.push<bool>(
                   context,
                   MaterialPageRoute(builder: (_) => ProfileScreen()),
                 );
-                if (didTurnOnSms==true) {
-                  _refreshData(); 
+                final prefs = await SharedPreferences.getInstance();
+                final profilePicKey = await PrefUtils.getPrefKey("profilePic");
+                setState(() {
+                  _profilePicUrl = prefs.getString(profilePicKey);
+                });
+                if (didTurnOnSms == true) {
+                  _refreshData();
                 } else {
-                  getExpenseInfo(); 
+                  getExpenseInfo();
                 }
               },
               child: Container(
@@ -119,8 +141,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   border: Border.all(color: Colors.white, width: 2.5),
                 ),
                 child: CircleAvatar(
-                  backgroundImage: NetworkImage("https://picsum.photos/200"),
                   radius: 18,
+                  // backgroundColor: Colors.grey.shade300,
+                  backgroundImage:
+                      _profilePicUrl != null && _profilePicUrl!.isNotEmpty
+                      ? NetworkImage(_profilePicUrl!)
+                      : null,
+                  child: _profilePicUrl == null || _profilePicUrl!.isEmpty
+                      ? Icon(
+                          Icons.person,
+                          size: 18,
+                          color: Colors.grey.shade600,
+                        )
+                      : null,
                 ),
               ),
             ),
@@ -390,7 +423,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> getSMS() async {
-    String? permissionValue = await storage.read(key: "readMessagesPermission");
+    final prefs = await SharedPreferences.getInstance();
+    final permissionKey = await PrefUtils.getPrefKey("readMessagesPermission");
+    String? permissionValue = prefs.getString(permissionKey);
     if (permissionValue == 'true') {
       try {
         List<SmsMessage> messages = await readSMS();
@@ -402,6 +437,8 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (e) {
         print("getSMS error: $e");
       }
+    } else {
+      print("Permission Denied!");
     }
   }
 
@@ -429,6 +466,50 @@ class _HomeScreenState extends State<HomeScreen> {
       print("Batch sent successfully");
     } else {
       print("Error sending batch: ${response.statusCode}");
+    }
+  }
+
+  Future<void> syncUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? accessToken = await storage.read(key: "accessToken");
+
+    try {
+      final response = await http.get(
+        Uri.parse("$BASE_URL/user/v1/getUser"),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'Authorization': 'Bearer $accessToken',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final firstNameKey = await PrefUtils.getPrefKey("firstName");
+        final lastNameKey = await PrefUtils.getPrefKey("lastName");
+        final emailKey = await PrefUtils.getPrefKey("email");
+        final phoneKey = await PrefUtils.getPrefKey("phoneNumber");
+        final profilePicKey = await PrefUtils.getPrefKey("profilePic");
+
+        prefs.setString(firstNameKey, data['first_name'] ?? "");
+        prefs.setString(lastNameKey, data['last_name'] ?? "");
+        prefs.setString(emailKey, data['email'] ?? "");
+        prefs.setString(phoneKey, data['phone_number']?.toString() ?? "");
+
+        if (data['profile_picture'] != null &&
+            data['profile_picture'].isNotEmpty) {
+          if (mounted) {
+            setState(() {
+              _profilePicUrl = data['profile_picture'];
+            });
+          }
+          prefs.setString(profilePicKey, data['profile_picture']);
+        }
+      } else {
+        print("Response Code: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Failed to fetch user data: $e");
     }
   }
 }
