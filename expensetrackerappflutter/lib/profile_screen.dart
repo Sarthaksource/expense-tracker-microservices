@@ -252,12 +252,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final firstNameKey = await PrefUtils.getPrefKey("firstName");
     final lastNameKey = await PrefUtils.getPrefKey("lastName");
     final emailKey = await PrefUtils.getPrefKey("email");
-    final phoneKey = await PrefUtils.getPrefKey("phoneNumber");
 
     String firstName = prefs.getString(firstNameKey) ?? "";
     String lastName = prefs.getString(lastNameKey) ?? "";
     String email = prefs.getString(emailKey) ?? "";
-    String phoneString = prefs.getString(phoneKey) ?? "";
 
     try {
       final response = await http.post(
@@ -271,7 +269,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           "user_id": userId,
           "first_name": firstName,
           "last_name": lastName,
-          "phone_number": int.tryParse(phoneString) ?? 0,
           "email": email,
           "profile_picture": base64Image,
         }),

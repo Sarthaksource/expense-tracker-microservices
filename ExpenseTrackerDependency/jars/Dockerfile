@@ -1,4 +1,4 @@
 FROM eclipse-temurin:21-jdk
 WORKDIR /app
-COPY expenseservice.jar /app/expenseservice.jar
-ENTRYPOINT ["java", "-jar", "/app/expenseservice.jar"]
+COPY userservice.jar /app/userservice.jar
+ENTRYPOINT ["java", "-jar", "/app/userservice.jar"]

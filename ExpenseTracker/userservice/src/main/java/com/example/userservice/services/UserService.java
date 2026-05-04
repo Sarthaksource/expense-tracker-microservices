@@ -21,7 +21,6 @@ public class UserService
         UnaryOperator<UserInfo> updatingUser = user -> {
             user.setFirstName(userInfoDto.getFirstName());
             user.setLastName(userInfoDto.getLastName());
-            user.setPhoneNumber(userInfoDto.getPhoneNumber());
             user.setEmail(userInfoDto.getEmail());
             user.setProfilePicture(userInfoDto.getProfilePicture());
 
@@ -40,7 +39,6 @@ public class UserService
                 userInfo.getUserId(),
                 userInfo.getFirstName(),
                 userInfo.getLastName(),
-                userInfo.getPhoneNumber(),
                 userInfo.getEmail(),
                 userInfo.getProfilePicture()
         );
@@ -56,7 +54,6 @@ public class UserService
                 userInfo.getUserId(),
                 userInfo.getFirstName(),
                 userInfo.getLastName(),
-                userInfo.getPhoneNumber(),
                 userInfo.getEmail(),
                 userInfo.getProfilePicture()
         );

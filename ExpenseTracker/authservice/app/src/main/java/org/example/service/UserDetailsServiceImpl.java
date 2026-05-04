@@ -35,14 +35,11 @@ public class UserDetailsServiceImpl implements UserDetailsService
     @Autowired
     private final UserInfoProducer userInfoProducer;
 
-//    private static final Logger log = LoggerFactory.getLogger(UserDetailsServiceImpl.class);
-
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException
     {
 
-//        log.debug("Entering in loadUserByUsername Method...");
-        UserInfo user = userRepository.findByUsername(username);
+        UserInfo user = userRepository.findByEmail(email);
         if(user == null){
 //            log.error("Username not found: " + username);
             throw new UsernameNotFoundException("could not found user..!!");
@@ -52,7 +49,7 @@ public class UserDetailsServiceImpl implements UserDetailsService
     }
 
     public UserInfo checkIfUserAlreadyExist(UserInfoDto userInfoDto){
-        return userRepository.findByUsername(userInfoDto.getUsername());
+        return userRepository.findByEmail(userInfoDto.getEmail());
     }
 
     public String signupUser(UserInfoDto userInfoDto){
@@ -61,22 +58,21 @@ public class UserDetailsServiceImpl implements UserDetailsService
         }
         String userId = UUID.randomUUID().toString();
         String encodedPassword = passwordEncoder.encode(userInfoDto.getPassword());
-        userRepository.save(new UserInfo(userId, userInfoDto.getUsername(), encodedPassword, new HashSet<>()));
+        userRepository.save(new UserInfo(userId, userInfoDto.getEmail(), encodedPassword, new HashSet<>()));
         userInfoProducer.sendEventToKafka(userInfoEventToPublish(userInfoDto, userId));
         return userId;
     }
 
-    public String getUserByUsername(String userName){
-        return Optional.of(userRepository.findByUsername(userName)).map(UserInfo::getUserId).orElse(null);
+    public String getUserByEmail(String email){
+        return Optional.ofNullable(userRepository.findByEmail(email)).map(UserInfo::getUserId).orElse(null);
     }
 
     private UserInfoEvent userInfoEventToPublish(UserInfoDto userInfoDto, String userId){
         return UserInfoEvent.builder()
                 .userId(userId)
-                .firstName(userInfoDto.getUsername())
+                .firstName(userInfoDto.getFirstName())
                 .lastName(userInfoDto.getLastName())
                 .email(userInfoDto.getEmail())
-                .phoneNumber(userInfoDto.getPhoneNumber()).build();
-
+                .build();
     }
 }

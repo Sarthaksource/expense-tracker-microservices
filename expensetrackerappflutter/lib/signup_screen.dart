@@ -17,9 +17,7 @@ class _SignupScreenState extends State<SignupScreen> {
   String _firstName = "";
   String _lastName = "";
   String _email = "";
-  String _username = "";
   String _password = "";
-  String _phoneNumber = "0";
   bool _isPasswordVisible = false;
 
   final storage = FlutterSecureStorage();
@@ -77,18 +75,6 @@ class _SignupScreenState extends State<SignupScreen> {
                         border: OutlineInputBorder(),
                       ),
                       onChanged: (value) => {_lastName = value},
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  Text("Username"),
-                  SizedBox(
-                    height: 50,
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: "Enter your username",
-                        border: OutlineInputBorder(),
-                      ),
-                      onChanged: (value) => {_username = value},
                     ),
                   ),
                   SizedBox(height: 15),
@@ -184,9 +170,7 @@ class _SignupScreenState extends State<SignupScreen> {
         "first_name": _firstName,
         "last_name": _lastName,
         "email": _email,
-        "phone_number": _phoneNumber,
         "password": _password,
-        "username": _username,
       }),
     );
     if (response.statusCode == 200) {

@@ -5,9 +5,4 @@ Future<List<SmsMessage>> readSMS() async {
   List<SmsMessage> messages = await query.getAllSms;
 
   return messages;
-  // for (var msg in messages) {
-  //   print('From: ${msg.sender}');
-  //   print('Body: ${msg.body}');
-  //   print('Date: ${msg.date}');
-  // }
 }

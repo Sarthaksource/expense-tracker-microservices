@@ -38,10 +38,10 @@ public class AuthController
         try{
             String userId = userDetailsService.signupUser(userInfoDto);
             if(Objects.isNull(userId)){
-                return new ResponseEntity<>("Already Exist", HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>("User Already Exists", HttpStatus.BAD_REQUEST);
             }
-            RefreshToken refreshToken = refreshTokenService.createRefreshToken(userInfoDto.getUsername());
-            String jwtToken = jwtService.GenerateToken(userInfoDto.getUsername());
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(userInfoDto.getEmail());
+            String jwtToken = jwtService.GenerateToken(userInfoDto.getEmail());
             return new ResponseEntity<>(JwtResponseDTO.builder().accessToken(jwtToken).
                     token(refreshToken.getToken()).userId(userId).build(), HttpStatus.OK);
         }catch (Exception ex){
@@ -53,7 +53,7 @@ public class AuthController
     public ResponseEntity<String> ping() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
-            String userId = userDetailsService.getUserByUsername(authentication.getName());
+            String userId = userDetailsService.getUserByEmail(authentication.getName());
             if (Objects.nonNull(userId)) {
                 return ResponseEntity.ok(userId);
             }

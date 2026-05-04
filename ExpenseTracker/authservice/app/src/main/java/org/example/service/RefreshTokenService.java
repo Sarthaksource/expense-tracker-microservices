@@ -19,8 +19,8 @@ public class RefreshTokenService {
     @Autowired
     UserRepository userRepository;
 
-    public RefreshToken createRefreshToken(String username) {
-        UserInfo userInfoExtracted = userRepository.findByUsername(username);
+    public RefreshToken createRefreshToken(String email) {
+        UserInfo userInfoExtracted = userRepository.findByEmail(email);
 
         // Check if token already exists for this user
         RefreshToken refreshToken = refreshTokenRepository.findByUserInfo(userInfoExtracted)

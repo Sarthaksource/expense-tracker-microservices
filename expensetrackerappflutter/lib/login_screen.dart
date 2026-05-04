@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final BASE_URL = AppConfig.baseUrl;
-  String _username = "";
+  String _email = "";
   String _password = "";
   bool _isPasswordVisible = false;
   final storage = FlutterSecureStorage();
@@ -73,15 +73,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 SizedBox(height: 25),
-                Text("Username"),
+                Text("Email"),
                 SizedBox(
                   height: 50,
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: "Enter username",
+                      hintText: "Enter email",
                       border: OutlineInputBorder(),
                     ),
-                    onChanged: (value) => {_username = value},
+                    onChanged: (value) => {_email = value},
                   ),
                 ),
                 SizedBox(height: 15),
@@ -160,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
       },
-      body: jsonEncode({"username": _username, "password": _password}),
+      body: jsonEncode({"email": _email, "password": _password}),
     );
     if (response.statusCode == 200) {
       var data = jsonDecode(response.body);

@@ -34,15 +34,15 @@ class ExpenseCard extends StatelessWidget {
         border: Border.all(width: 0.3, color: Colors.grey.shade500),
       ),
       child: Padding(
-        padding: EdgeInsets.all(30),
+        padding: EdgeInsets.all(20),
         child: Row(
           children: [
             Stack(
               alignment: Alignment.center,
               children: [
                 SizedBox(
-                  width: 150,
-                  height: 150,
+                  width: 130,
+                  height: 130,
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(begin: 0, end: progress),
                     duration: Duration(milliseconds: 800),
@@ -50,7 +50,7 @@ class ExpenseCard extends StatelessWidget {
                       return CircularProgressIndicator(
                         strokeCap: StrokeCap.round,
                         value: value,
-                        strokeWidth: 10,
+                        strokeWidth: 9,
                         backgroundColor: Colors.grey.shade300,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           Colors.purple.shade900,
@@ -68,7 +68,7 @@ class ExpenseCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text("Spent", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, height: 1),),
+                    Text("Spent", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, height: 1),),
                   ],
                 ),
               ],

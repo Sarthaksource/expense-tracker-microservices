@@ -21,8 +21,6 @@ public class UserInfoEvent
 
     private String email;
 
-    private Long phoneNumber;
-
     private String userId;
 
 }

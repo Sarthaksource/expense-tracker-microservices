@@ -19,9 +19,5 @@ public class UserInfoDto extends UserInfo
 
     @NonNull
     private String lastName; //last_name
-
-    private Long phoneNumber;
-
-    private String email; // email
 }
 

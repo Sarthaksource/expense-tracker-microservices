@@ -230,7 +230,7 @@ Following issues need to be fixed:
 - Getting expense from messages seems broken (misses some messages, refer demo video) ✅
 - Allow user to turn on/off message permission ✅
 - No way to change profile picture ✅
-- Some fields in signup are redundant (username & email, also phone number which is commented)
+- Some fields in signup are redundant (username & email, also phone number which is commented) ✅
 
 ## Notes
 

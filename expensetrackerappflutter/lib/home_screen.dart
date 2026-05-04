@@ -29,7 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final BASE_URL = AppConfig.baseUrl;
   final List<Expense> _expenses = [];
   ExpenseFilter _activeFilter = const ExpenseFilter(
-    type: ExpenseFilterType.all,
+    type: ExpenseFilterType.lastMonth,
   );
   List<Expense> _filteredExpenses = [];
   final storage = FlutterSecureStorage();
@@ -488,13 +488,11 @@ class _HomeScreenState extends State<HomeScreen> {
         final firstNameKey = await PrefUtils.getPrefKey("firstName");
         final lastNameKey = await PrefUtils.getPrefKey("lastName");
         final emailKey = await PrefUtils.getPrefKey("email");
-        final phoneKey = await PrefUtils.getPrefKey("phoneNumber");
         final profilePicKey = await PrefUtils.getPrefKey("profilePic");
 
         prefs.setString(firstNameKey, data['first_name'] ?? "");
         prefs.setString(lastNameKey, data['last_name'] ?? "");
         prefs.setString(emailKey, data['email'] ?? "");
-        prefs.setString(phoneKey, data['phone_number']?.toString() ?? "");
 
         if (data['profile_picture'] != null &&
             data['profile_picture'].isNotEmpty) {
