@@ -60,6 +60,7 @@ class ExpenseCard extends StatelessWidget {
                   ),
                 ),
                 Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       "$currency$spent",

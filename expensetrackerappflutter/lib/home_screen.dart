@@ -17,6 +17,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_sms_inbox/flutter_sms_inbox.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:expensetrackerappflutter/widgets/expense_graph_card.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -42,6 +43,9 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
 
   String? _profilePicUrl;
+
+  int _currentCardIndex = 0;
+  final PageController _pageController = PageController(viewportFraction: 0.99);
 
   @override
   void initState() {
@@ -142,7 +146,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: CircleAvatar(
                   radius: 18,
-                  // backgroundColor: Colors.grey.shade300,
                   backgroundImage:
                       _profilePicUrl != null && _profilePicUrl!.isNotEmpty
                       ? NetworkImage(_profilePicUrl!)
@@ -164,13 +167,61 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: EdgeInsets.all(10),
         child: Column(
           children: [
-            ExpenseCard(
-              progress: getProgress(),
-              total: _amountLimit,
-              spent: _amountSpent,
-              merchant: _topMerchant,
-              status: getStatus(),
-              currency: _currency,
+            SizedBox(
+              height: 200,
+              child: PageView(
+                padEnds: false,
+                clipBehavior: Clip.none,
+                scrollDirection: Axis.horizontal,
+                controller: _pageController,
+                onPageChanged: (int index) {
+                  setState(() {
+                    _currentCardIndex = index;
+                  });
+                },
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 2,
+                      vertical: 10,
+                    ),
+                    child: ExpenseCard(
+                      progress: getProgress(),
+                      total: _amountLimit,
+                      spent: _amountSpent,
+                      merchant: _topMerchant,
+                      status: getStatus(),
+                      currency: _currency,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                    child: ExpenseGraphCard(
+                      filteredExpenses: _filteredExpenses,
+                      currency: _currency,
+                      activeFilter: _activeFilter,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(2, (index) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  height: 8,
+                  width: _currentCardIndex == index ? 24 : 8,
+                  decoration: BoxDecoration(
+                    color: _currentCardIndex == index
+                        ? Colors.purple.shade900
+                        : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                );
+              }),
             ),
             SizedBox(height: 15),
             Row(

@@ -171,7 +171,7 @@ Kafka:
 </table>
 
 
-### Home Page
+### Home Page (First)
 
 <table width="100%">
   <tr>
@@ -183,7 +183,26 @@ Kafka:
       →
     </td>
     <td align="center">
-      <img src="ExpenseTrackerResources/home.png" height="400"/><br/>
+      <img src="ExpenseTrackerResources/home1.png" height="400"/><br/>
+      <sub>Improved Home Page UI</sub>
+    </td>
+  </tr>
+</table>
+
+
+### Home Page (Second)
+
+<table width="100%">
+  <tr>
+    <td align="center">
+      <img src="ExpenseTrackerResources/oldHome.png" height="400"/><br/>
+      <sub>Old Home Page UI</sub>
+    </td>
+    <td align="center" style="vertical-align: middle; font-size: 28px; width: 50px;">
+      →
+    </td>
+    <td align="center">
+      <img src="ExpenseTrackerResources/home2.png" height="400"/><br/>
       <sub>Improved Home Page UI</sub>
     </td>
   </tr>
@@ -231,6 +250,7 @@ Following issues need to be fixed:
 - Allow user to turn on/off message permission ✅
 - No way to change profile picture ✅
 - Some fields in signup are redundant (username & email, also phone number which is commented) ✅
+- Update demo video
 
 ## Notes
 
